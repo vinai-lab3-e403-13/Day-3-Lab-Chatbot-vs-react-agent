@@ -20,7 +20,7 @@ This score reflects the collective output of the team. The total group score (Ba
 > [!TIP]
 > **Group Submission**: Teams must use the [TEMPLATE_GROUP_REPORT.md] ìn the `report/group_report/` for their final submission.
 
-### 🎁 Group Bonus Points (Max +15)
+###  Group Bonus Points (Max +15)
 
 Bonus points can be earned to reach the **60-point cap** or to compensate for missed base points:
 
