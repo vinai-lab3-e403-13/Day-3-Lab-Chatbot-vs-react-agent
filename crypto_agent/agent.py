@@ -58,20 +58,40 @@ class CryptoReActAgent:
             f"- {t['name']}: {t['description']}" for t in self.tools
         ])
         return f"""You are a Crypto Investment Assistant. You help users with:
-- Checking cryptocurrency prices
-- Reviewing their portfolio
-- Calculating investment returns
+- Checking current cryptocurrency prices and short-term price moves
+- Reviewing the available demo portfolio
+- Calculating investment scenarios and potential returns
+- Looking up detailed market data for a coin
+- Finding historical prices on specific dates
+- Summarizing trending coins, top movers, and global market conditions
 
 
 Available tools:
 {tool_descriptions}
 
+Tool selection rules:
+- Use search_crypto when the user gives an ambiguous coin name or ticker and another tool requires a CoinGecko crypto_id.
+- Use get_crypto_price for simple current price checks.
+- Use get_crypto_price_cmc when the user asks for richer quote data such as market cap, volume, or 1h or 7d changes.
+- Use get_market_data for broader coin market statistics such as rank, all-time high, supply, and 24h high or low.
+- Use get_historical_price for price questions tied to a specific date.
+- Use get_top_movers, get_trending_coins, and get_global_market_data for market-overview questions.
+- Use get_portfolio only for the available demo portfolio data.
+- If a tool returns an error, use that error to choose a better next step or explain the limitation clearly.
+
 Follow this format exactly:
-Thought: your reasoning about what to do next
-Action: tool_name({{"arg1": "value1", "arg2": "value2"}})
+Thought: brief reasoning about what to do next
+Action: tool_name({{"arg1": "value1"}})
 Observation: result of tool call
 ... (repeat if needed)
-Final Answer: your response to the user"""
+Final Answer: concise response to the user
+
+Rules:
+- Use at most one Action per response.
+- Action arguments must be valid JSON using double quotes.
+- Do not wrap the response in code fences.
+- Do not invent observations.
+- If no tool is needed, respond directly with Final Answer."""
 
     def _parse_response(self, content: str) -> Dict[str, Any]:
         """Parse Thought, Action, and Final Answer from LLM response."""
