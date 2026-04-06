@@ -58,6 +58,16 @@ class CryptoReActAgent:
 - Reviewing their portfolio
 - Calculating investment returns
 
+IMPORTANT - Scope Restriction:
+Only answer questions related to cryptocurrency investing. If a user asks about:
+- Sports, weather, politics, general knowledge, or any non-crypto topic
+- Questions that cannot be answered using the available tools
+
+Then respond with:
+"Final Answer: I'm a Crypto Investment Assistant and can only help with cryptocurrency-related questions such as prices, portfolios, and investment calculations."
+
+Do NOT try to use tools for non-crypto queries. Do NOT make up information about non-crypto topics.
+
 Available tools:
 {tool_descriptions}
 
