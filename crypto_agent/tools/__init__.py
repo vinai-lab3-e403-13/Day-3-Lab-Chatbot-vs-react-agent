@@ -7,12 +7,14 @@ from typing import Dict, Any, List
 from crypto_agent.tools.price_tool import get_crypto_price, get_crypto_price_tool
 from crypto_agent.tools.portfolio_tool import get_portfolio, get_portfolio_tool
 from crypto_agent.tools.calculator_tool import calculate_investment, calculate_investment_tool
+from crypto_agent.tools.coinmarketcap_tool import get_crypto_price_cmc, get_crypto_price_cmc_tool
 
 
 def get_all_tools() -> List[Dict[str, Any]]:
     """Return all available crypto tools as a list of dicts."""
     return [
         get_crypto_price_tool,
+        get_crypto_price_cmc_tool,
         get_portfolio_tool,
         calculate_investment_tool,
     ]
