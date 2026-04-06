@@ -133,6 +133,24 @@ Rules:
                 prompt += f"\nObservation: {step['observation']}"
         return prompt
 
+    def _build_fallback_answer(self, trace_steps: List[Dict[str, Any]]) -> str:
+        """Return the latest useful result when the loop exits without a final answer."""
+        for step in reversed(trace_steps):
+            if step.get("final_answer"):
+                return step["final_answer"]
+
+            if step.get("observation"):
+                action = step.get("action")
+                observation = step["observation"]
+                if action:
+                    return f"Current result from {action}: {observation}"
+                return f"Current result: {observation}"
+
+            if step.get("llm_output"):
+                return step["llm_output"]
+
+        return "I could not complete the request within the step limit."
+
     def run(self, user_input: str) -> Dict[str, Any]:
         """
         Execute the ReAct loop and return result with trace.
@@ -265,16 +283,18 @@ Rules:
         end_time = time.time()
         latency_ms = int((end_time - start_time) * 1000)
 
+        answer = final_answer or self._build_fallback_answer(trace["steps"])
+
         trace["total_steps"] = steps + 1
         trace["latency_ms"] = latency_ms
-        trace["final_answer"] = final_answer or "Agent did not produce final answer"
+        trace["final_answer"] = answer
 
         self.history = steps_data
 
         logger.log_event("CRYPTO_AGENT_END", trace)
 
         return {
-            "answer": final_answer or "Max steps exceeded",
+            "answer": answer,
             "trace": trace,
             "tokens_used": sum(s["tokens"]["total_tokens"] for s in trace["steps"]),
             "latency_ms": latency_ms
