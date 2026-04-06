@@ -1,0 +1,48 @@
+{
+  "test_case_id": "test_case_1",
+  "name": "Check Bitcoin Price",
+  "timestamp": "2026-04-06T08:20:43.095582",
+  "input": "What's the current price of Bitcoin?",
+  "expected_success": true,
+  "expected_tools": [
+    "get_crypto_price"
+  ],
+  "actual_steps": 2,
+  "final_answer": "The current price of Bitcoin is $67,500.00, with a 24-hour change of 2.35%.",
+  "tokens_used": 596,
+  "latency_ms": 3763,
+  "full_trace": {
+    "input": "What's the current price of Bitcoin?",
+    "steps": [
+      {
+        "step": 1,
+        "llm_output": "Thought: I need to retrieve the current price of Bitcoin using the appropriate tool.\nAction: get_crypto_price({\"crypto_id\": \"bitcoin\"})",
+        "tokens": {
+          "prompt_tokens": 241,
+          "completion_tokens": 28,
+          "total_tokens": 269
+        },
+        "thought": "I need to retrieve the current price of Bitcoin using the appropriate tool.",
+        "action": "get_crypto_price",
+        "action_args": {
+          "crypto_id": "bitcoin"
+        },
+        "observation": "{\"crypto\": \"bitcoin\", \"price_usd\": 67500.0, \"change_24h\": 2.35}"
+      },
+      {
+        "step": 2,
+        "llm_output": "Final Answer: The current price of Bitcoin is $67,500.00, with a 24-hour change of 2.35%.",
+        "tokens": {
+          "prompt_tokens": 299,
+          "completion_tokens": 28,
+          "total_tokens": 327
+        },
+        "final_answer": "The current price of Bitcoin is $67,500.00, with a 24-hour change of 2.35%."
+      }
+    ],
+    "model": "gpt-4o",
+    "total_steps": 2,
+    "latency_ms": 3763,
+    "final_answer": "The current price of Bitcoin is $67,500.00, with a 24-hour change of 2.35%."
+  }
+}
