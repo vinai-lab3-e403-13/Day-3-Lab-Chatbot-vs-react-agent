@@ -8,6 +8,10 @@ import logging
 import uuid
 from datetime import datetime
 from typing import List, Dict, Any, Optional
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from src.core.llm_provider import LLMProvider
 from src.telemetry.logger import logger
 from src.telemetry.metrics import tracker
