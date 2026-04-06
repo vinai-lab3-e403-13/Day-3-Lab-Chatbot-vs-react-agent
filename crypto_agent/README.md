@@ -8,6 +8,7 @@ A complete ReAct agent implementation for crypto investment assistance, built as
 crypto_agent/
 ├── agent.py           # CryptoReActAgent (complete ReAct implementation)
 ├── chat.py            # Interactive CLI chat interface
+├── gui.py            # Streamlit GUI with visualizations
 ├── tools/             # Crypto investment tools
 │   ├── price_tool.py      # get_crypto_price
 │   ├── portfolio_tool.py  # get_portfolio
@@ -43,7 +44,24 @@ Output: {"investment_usd": 1000, "crypto_id": "ethereum", "amount_crypto": 0.357
 
 ## Usage
 
-### Interactive Chat
+### Streamlit GUI (Recommended)
+
+Launch a visual interface with chain-of-thoughts visualization, token metrics, and session statistics.
+
+```bash
+.venv/bin/pip install streamlit pandas
+.venv/bin/streamlit run crypto_agent/gui.py --server.port 8501
+```
+
+Features:
+- **Chat Interface**: Interactive chat with the agent
+- **Chain of Thoughts**: Visual display of Thought → Action → Observation → Final Answer
+- **Token Metrics**: Per-request and cumulative token usage
+- **Latency Tracking**: Response time for each request
+- **Tools Used**: Bar chart of which tools are called most
+- **Session Statistics**: Table and line charts of all sessions
+
+### Interactive CLI Chat
 
 ```bash
 .venv/bin/python crypto_agent/chat.py
@@ -72,10 +90,37 @@ The `CryptoReActAgent` follows the Thought-Action-Observation cycle:
 4. Repeat until `Final Answer`
 
 Key methods in `agent.py`:
-- `get_system_prompt()` - Builds prompt with tools + ReAct format
+- `get_system_prompt()` - Builds prompt with tools + ReAct format + scope restriction
 - `run(user_input)` - Executes full ReAct loop, returns `{answer, trace, tokens_used, latency_ms}`
 - `_parse_response()` - Extracts Thought/Action/Final Answer via regex
-- `_execute_tool()` - Dispatches to tool functions
+- `_log_chain_step()` - Logs each step to `logs/chain_of_thoughts_YYYY-MM-DD.json`
+
+## Chain of Thoughts Logging
+
+All interactions are logged to `logs/chain_of_thoughts_YYYY-MM-DD.json`:
+
+```json
+{"timestamp": "2026-04-06T10:30:00.000Z", "session_id": "a1b2c3d4", "event_type": "USER_INPUT", "user_input": "What's Bitcoin price?"}
+{"timestamp": "2026-04-06T10:30:01.000Z", "session_id": "a1b2c3d4", "event_type": "LLM_OUTPUT", "step": 1, "llm_raw_output": "...", "tokens": {...}}
+{"timestamp": "2026-04-06T10:30:02.000Z", "session_id": "a1b2c3d4", "event_type": "CHAIN_OF_THOUGHT", "step": 1, "thought": "User wants Bitcoin price..."}
+{"timestamp": "2026-04-06T10:30:03.000Z", "session_id": "a1b2c3d4", "event_type": "ACTION", "step": 1, "action": "get_crypto_price", "action_args": {"crypto_id": "bitcoin"}, "observation": "{\"price_usd\": 67500}"}
+{"timestamp": "2026-04-06T10:30:04.000Z", "session_id": "a1b2c3d4", "event_type": "FINAL_ANSWER", "step": 2, "final_answer": "Bitcoin is $67,500..."}
+```
+
+Event types:
+- `USER_INPUT` - User's query
+- `LLM_OUTPUT` - Raw LLM response
+- `CHAIN_OF_THOUGHT` - Parsed thought reasoning
+- `ACTION` - Tool call with arguments and observation
+- `FINAL_ANSWER` - Final response to user
+
+## Scope Restriction
+
+The agent is restricted to crypto-related topics. For non-crypto questions:
+
+```
+Final Answer: I'm a Crypto Investment Assistant and can only help with cryptocurrency-related questions such as prices, portfolios, and investment calculations.
+```
 
 ## Trace Structure
 
@@ -115,5 +160,6 @@ Each test case generates a trace with:
 | Status | Skeleton with TODOs | Fully implemented |
 | Tools | None | 3 crypto tools |
 | Parsing | None | Regex-based Thought/Action extraction |
-| Telemetry | Logger + metrics | Full trace generation |
-| Chat Interface | None | Interactive CLI |
+| Telemetry | Logger + metrics | Full trace generation + Chain-of-Thoughts JSON |
+| Chat Interface | None | CLI + Streamlit GUI |
+| Scope Restriction | None | Non-crypto topics rejected |
