@@ -3,6 +3,10 @@
 import re
 import json
 import time
+import os
+import logging
+import uuid
+from datetime import datetime
 from typing import List, Dict, Any, Optional
 from src.core.llm_provider import LLMProvider
 from src.telemetry.logger import logger
@@ -21,6 +25,28 @@ class CryptoReActAgent:
         self.tools = tools if tools is not None else get_all_tools()
         self.max_steps = max_steps
         self.history = []
+        self._setup_chain_logger()
+
+    def _setup_chain_logger(self):
+        """Setup logger for detailed chain of thoughts."""
+        log_dir = "logs"
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir)
+        chain_log_file = os.path.join(log_dir, f"chain_of_thoughts_{datetime.now().strftime('%Y-%m-%d')}.json")
+        self._chain_logger = logging.getLogger("crypto_agent_chain")
+        self._chain_logger.setLevel(logging.INFO)
+        handler = logging.FileHandler(chain_log_file)
+        handler.setFormatter(logging.Formatter('%(message)s'))
+        self._chain_logger.addHandler(handler)
+
+    def _log_chain_step(self, session_id: str, step_data: Dict[str, Any]):
+        """Log a single chain of thoughts step to JSON file."""
+        entry = {
+            "timestamp": datetime.utcnow().isoformat(),
+            "session_id": session_id,
+            **step_data
+        }
+        self._chain_logger.info(json.dumps(entry))
 
     def get_system_prompt(self) -> str:
         """Build system prompt with crypto tools and ReAct format."""
@@ -89,14 +115,23 @@ Final Answer: your response to the user"""
         Returns:
             Dict with 'answer', 'trace', 'tokens_used', 'latency_ms'
         """
+        session_id = str(uuid.uuid4())[:8]
+
         trace = {
             "input": user_input,
             "steps": [],
-            "model": self.llm.model_name
+            "model": self.llm.model_name,
+            "session_id": session_id
         }
 
         start_time = time.time()
         logger.log_event("CRYPTO_AGENT_START", {"input": user_input, "model": self.llm.model_name})
+
+        # Log user input to chain of thoughts
+        self._log_chain_step(session_id, {
+            "event_type": "USER_INPUT",
+            "user_input": user_input
+        })
 
         steps_data = []
         current_prompt = user_input
@@ -118,8 +153,22 @@ Final Answer: your response to the user"""
                 "tokens": response["usage"]
             }
 
+            # Log LLM raw output to chain of thoughts
+            self._log_chain_step(session_id, {
+                "event_type": "LLM_OUTPUT",
+                "step": steps + 1,
+                "llm_raw_output": content,
+                "tokens": response["usage"]
+            })
+
             if parsed["thought"]:
                 step_record["thought"] = parsed["thought"]
+                # Log chain of thought
+                self._log_chain_step(session_id, {
+                    "event_type": "CHAIN_OF_THOUGHT",
+                    "step": steps + 1,
+                    "thought": parsed["thought"]
+                })
 
             if parsed["action"]:
                 tool_name = parsed["action"]
@@ -137,6 +186,15 @@ Final Answer: your response to the user"""
                     "observation": observation
                 })
 
+                # Log action
+                self._log_chain_step(session_id, {
+                    "event_type": "ACTION",
+                    "step": steps + 1,
+                    "action": tool_name,
+                    "action_args": args,
+                    "observation": observation
+                })
+
                 current_prompt = self._build_prompt(user_input, steps_data)
             else:
                 steps_data.append({
@@ -146,6 +204,12 @@ Final Answer: your response to the user"""
             if parsed["final_answer"]:
                 final_answer = parsed["final_answer"]
                 step_record["final_answer"] = final_answer
+                # Log final answer
+                self._log_chain_step(session_id, {
+                    "event_type": "FINAL_ANSWER",
+                    "step": steps + 1,
+                    "final_answer": final_answer
+                })
 
             trace["steps"].append(step_record)
 
