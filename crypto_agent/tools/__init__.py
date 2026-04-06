@@ -24,6 +24,7 @@ def execute_tool(tool_name: str, **kwargs) -> str:
     """Execute a tool by name and return result string."""
     tool_map = {
         "get_crypto_price": get_crypto_price,
+        "get_crypto_price_cmc": get_crypto_price_cmc,
         "get_portfolio": get_portfolio,
         "calculate_investment": calculate_investment,
     }
