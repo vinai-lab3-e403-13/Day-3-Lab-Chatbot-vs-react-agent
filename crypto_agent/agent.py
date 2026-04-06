@@ -24,7 +24,7 @@ class CryptoReActAgent:
     Follows Thought-Action-Observation loop with crypto-specific tools.
     """
 
-    def __init__(self, llm: LLMProvider, tools: Optional[List[Dict[str, Any]]] = None, max_steps: int = 5):
+    def __init__(self, llm: LLMProvider, tools: Optional[List[Dict[str, Any]]] = None, max_steps: int = 10):
         self.llm = llm
         self.tools = tools if tools is not None else get_all_tools()
         self.max_steps = max_steps
@@ -62,15 +62,6 @@ class CryptoReActAgent:
 - Reviewing their portfolio
 - Calculating investment returns
 
-IMPORTANT - Scope Restriction:
-Only answer questions related to cryptocurrency investing. If a user asks about:
-- Sports, weather, politics, general knowledge, or any non-crypto topic
-- Questions that cannot be answered using the available tools
-
-Then respond with:
-"Final Answer: I'm a Crypto Investment Assistant and can only help with cryptocurrency-related questions such as prices, portfolios, and investment calculations."
-
-Do NOT try to use tools for non-crypto queries. Do NOT make up information about non-crypto topics.
 
 Available tools:
 {tool_descriptions}
@@ -210,6 +201,18 @@ Final Answer: your response to the user"""
                 })
 
                 current_prompt = self._build_prompt(user_input, steps_data)
+                # Always loop back so the LLM sees the REAL observation
+                # before producing a final answer — ignore any hallucinated
+                # final answer bundled in the same response as an action.
+                trace["steps"].append(step_record)
+                tracker.track_request(
+                    provider=response["provider"],
+                    model=self.llm.model_name,
+                    usage=response["usage"],
+                    latency_ms=response["latency_ms"]
+                )
+                steps += 1
+                continue
             else:
                 steps_data.append({
                     "thought": parsed["thought"] or "No action needed"
