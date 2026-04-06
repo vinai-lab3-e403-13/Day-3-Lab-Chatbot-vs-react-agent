@@ -1,15 +1,8 @@
 """Tool: Calculate potential investment returns."""
 
 import json
+import requests
 from typing import Dict, Any
-
-
-MOCK_PRICES = {
-    "bitcoin": 67000.0,
-    "ethereum": 2800.0,
-    "solana": 140.0,
-    "cardano": 0.45
-}
 
 
 def calculate_investment(amount_usd: float, crypto_id: str, expected_gain_pct: float = 0.0) -> str:
@@ -24,10 +17,24 @@ def calculate_investment(amount_usd: float, crypto_id: str, expected_gain_pct: f
     Returns:
         JSON string with calculation results
     """
-    price = MOCK_PRICES.get(crypto_id, None)
+    crypto_id_lower = crypto_id.lower()
+    url = "https://api.coingecko.com/api/v3/simple/price"
+    params = {
+        "ids": crypto_id_lower,
+        "vs_currencies": "usd"
+    }
 
-    if price is None:
-        return json.dumps({"error": f"Cryptocurrency '{crypto_id}' not found in calculator"})
+    try:
+        response = requests.get(url, params=params, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        
+        if crypto_id_lower not in data or "usd" not in data[crypto_id_lower]:
+            return json.dumps({"error": f"Cryptocurrency '{crypto_id}' not found in CoinGecko"})
+            
+        price = data[crypto_id_lower]["usd"]
+    except requests.RequestException as e:
+        return json.dumps({"error": f"Failed to fetch current pricing from CoinGecko: {str(e)}"})
 
     amount_crypto = amount_usd / price
 

@@ -49,8 +49,13 @@ Output: {"investment_usd": 1000, "crypto_id": "ethereum", "amount_crypto": 0.357
 Launch a visual interface with chain-of-thoughts visualization, token metrics, and session statistics.
 
 ```bash
+# Trên macOS/Linux
 .venv/bin/pip install streamlit pandas
 .venv/bin/streamlit run crypto_agent/gui.py --server.port 8501
+
+# Trên Windows
+.\.venv\Scripts\pip install streamlit pandas
+.\.venv\Scripts\streamlit run crypto_agent\gui.py --server.port 8501
 ```
 
 Features:

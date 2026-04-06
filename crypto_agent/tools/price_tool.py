@@ -1,16 +1,8 @@
 """Tool: Get current price of a cryptocurrency via CoinGecko API."""
 
 import json
+import requests
 from typing import Dict, Any
-
-# Mock prices for demo purposes (CoinGecko API can be used with requests library)
-MOCK_PRICES = {
-    "bitcoin": {"price_usd": 67500.00, "change_24h": 2.35},
-    "ethereum": {"price_usd": 3450.00, "change_24h": -1.20},
-    "solana": {"price_usd": 145.00, "change_24h": 5.80},
-    "cardano": {"price_usd": 0.48, "change_24h": -0.50},
-}
-
 
 def get_crypto_price(crypto_id: str) -> str:
     """
@@ -23,14 +15,29 @@ def get_crypto_price(crypto_id: str) -> str:
         JSON string with price data
     """
     crypto_id_lower = crypto_id.lower()
-    if crypto_id_lower in MOCK_PRICES:
-        data = MOCK_PRICES[crypto_id_lower]
-        return json.dumps({
-            "crypto": crypto_id_lower,
-            "price_usd": data["price_usd"],
-            "change_24h": data["change_24h"]
-        })
-    return json.dumps({"error": f"Cryptocurrency '{crypto_id}' not found"})
+    url = "https://api.coingecko.com/api/v3/simple/price"
+    params = {
+        "ids": crypto_id_lower,
+        "vs_currencies": "usd",
+        "include_24hr_change": "true"
+    }
+
+    try:
+        response = requests.get(url, params=params, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        
+        if crypto_id_lower in data:
+            coin_data = data[crypto_id_lower]
+            return json.dumps({
+                "crypto": crypto_id_lower,
+                "price_usd": coin_data.get("usd"),
+                "change_24h": coin_data.get("usd_24h_change")
+            })
+        else:
+            return json.dumps({"error": f"Cryptocurrency '{crypto_id}' not found"})
+    except requests.RequestException as e:
+        return json.dumps({"error": f"Failed to fetch data from CoinGecko: {str(e)}"})
 
 
 get_crypto_price_tool = {
