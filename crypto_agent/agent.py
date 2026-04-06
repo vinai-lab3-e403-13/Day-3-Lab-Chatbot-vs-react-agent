@@ -210,6 +210,18 @@ Final Answer: your response to the user"""
                 })
 
                 current_prompt = self._build_prompt(user_input, steps_data)
+                # Always loop back so the LLM sees the REAL observation
+                # before producing a final answer — ignore any hallucinated
+                # final answer bundled in the same response as an action.
+                trace["steps"].append(step_record)
+                tracker.track_request(
+                    provider=response["provider"],
+                    model=self.llm.model_name,
+                    usage=response["usage"],
+                    latency_ms=response["latency_ms"]
+                )
+                steps += 1
+                continue
             else:
                 steps_data.append({
                     "thought": parsed["thought"] or "No action needed"
