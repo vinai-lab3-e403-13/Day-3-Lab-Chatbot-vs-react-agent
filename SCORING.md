@@ -2,7 +2,7 @@
 
 This document outlines the grading criteria for Lab 3. The goal is to demonstrate deep understanding of agentic reasoning, robust monitoring, and iterative improvement.
 
-## 👥 1. Group Score (45 Points Base + 15 Points Bonus = Max 60)
+##  1. Group Score (45 Points Base + 15 Points Bonus = Max 60)
 
 This score reflects the collective output of the team. The total group score (Base + Bonus) is capped at **60 points**.
 
@@ -34,7 +34,7 @@ Bonus points can be earned to reach the **60-point cap** or to compensate for mi
 
 ---
 
-## 👤 2. Individual Score (40 Points)
+##  2. Individual Score (40 Points)
 
 To earn the full 40 points, each student must submit an `individual_report.md` in the `report/individual_reports/` directory.
 
@@ -47,7 +47,7 @@ To earn the full 40 points, each student must submit an `individual_report.md` i
 
 ---
 
-## 🏎️ Total Score Calculation
+##  Total Score Calculation
 
 The final grade for each student is calculated as:
 **Total = MIN(60, Group Base + Group Bonus) + Individual Score (max 40) = 100 Points Max**
